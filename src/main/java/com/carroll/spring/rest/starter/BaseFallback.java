@@ -13,9 +13,9 @@ public class BaseFallback {
      */
     public BaseResponse fallBackResponse(String errCode, String errMsg) {
         BaseResponse response = new BaseResponse();
-        response.setReturnSuccess(false);
-        response.setReturnErrCode(errCode);
-        response.setReturnErrMsg(errMsg);
+        response.setSuccess(false);
+        response.setErrCode(errCode);
+        response.setMessage(errMsg);
         return response;
     }
 }

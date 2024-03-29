@@ -44,14 +44,14 @@ public class BaseController {
         BaseResponse base = new BaseResponse();
         if (t instanceof BaseException) {
             BaseException baseException = (BaseException) t;
-            base.setReturnErrCode(baseException.getReturnErrCode());
-            base.setReturnErrMsg(baseException.getReturnErrMsg());
+            base.setErrCode(baseException.getReturnErrCode());
+            base.setMessage(baseException.getReturnErrMsg());
         } else if (t instanceof BaseBusinessException) {
             BaseBusinessException baseBusinessException = (BaseBusinessException) t;
-            base.setReturnErrCode(baseBusinessException.getReturnErrCode());
-            base.setReturnErrMsg(baseBusinessException.getReturnErrMsg());
+            base.setErrCode(baseBusinessException.getReturnErrCode());
+            base.setMessage(baseBusinessException.getReturnErrMsg());
         }
-        base.setReturnSuccess(false);
+        base.setSuccess(false);
         return base;
     };
 
@@ -64,9 +64,9 @@ public class BaseController {
      */
     public BaseResponse fallBackResponse(String errCode, String errMsg) {
         BaseResponse response = new BaseResponse();
-        response.setReturnSuccess(false);
-        response.setReturnErrCode(errCode);
-        response.setReturnErrMsg(errMsg);
+        response.setSuccess(false);
+        response.setErrCode(errCode);
+        response.setMessage(errMsg);
         return response;
     }
 
@@ -93,9 +93,9 @@ public class BaseController {
             }
         }
 
-        base.setReturnSuccess(false);
-        base.setReturnErrCode(ERR_CODE);
-        base.setReturnErrMsg(ERR_MSG);
+        base.setSuccess(false);
+        base.setErrCode(ERR_CODE);
+        base.setMessage(ERR_MSG);
 
         return new ResponseEntity<>(base, HttpStatus.OK);
     }
@@ -107,8 +107,8 @@ public class BaseController {
         }
         JsonMappingException exception = (JsonMappingException) e.getCause();
         BaseResponse base = new BaseResponse();
-        base.setReturnSuccess(false);
-        base.setReturnErrCode(PARAM_ERR_CODE);
+        base.setSuccess(false);
+        base.setErrCode(PARAM_ERR_CODE);
         StringBuilder fieldNames = new StringBuilder();
         if (exception != null) {
             List<JsonMappingException.Reference> paths = exception.getPath();
@@ -129,7 +129,7 @@ public class BaseController {
         if (fieldNames.length() > 0) {
             fieldNames.deleteCharAt(fieldNames.length() - 1);
         }
-        base.setReturnErrMsg(String.format("%s%s", PARAM_ERR_MSG, fieldNames.toString()));
+        base.setMessage(String.format("%s%s", PARAM_ERR_MSG, fieldNames.toString()));
         LOG.info(PARAM_ERR_MSG, e);
         return new ResponseEntity(base, HttpStatus.OK);
     }
@@ -140,9 +140,9 @@ public class BaseController {
             getProcessException().process(request, handlerMethod, e);
         }
         BaseResponse base = new BaseResponse();
-        base.setReturnSuccess(false);
-        base.setReturnErrCode(PARAM_ERR_CODE);
-        base.setReturnErrMsg(String.format("%s%s", PARAM_ERR_MSG, e.getParamNames() == null ? "" : String.join(",", Arrays.asList(e.getParamNames()))));
+        base.setSuccess(false);
+        base.setErrCode(PARAM_ERR_CODE);
+        base.setMessage(String.format("%s%s", PARAM_ERR_MSG, e.getParamNames() == null ? "" : String.join(",", Arrays.asList(e.getParamNames()))));
         LOG.info(PARAM_ERR_MSG, e);
         return new ResponseEntity(base, HttpStatus.OK);
     }
@@ -183,9 +183,9 @@ public class BaseController {
             getProcessException().process(request, handlerMethod, e);
         }
         BaseResponse base = new BaseResponse();
-        base.setReturnSuccess(false);
-        base.setReturnErrCode(PARAM_ERR_CODE);
-        base.setReturnErrMsg(PARAM_ERR_MSG);
+        base.setSuccess(false);
+        base.setErrCode(PARAM_ERR_CODE);
+        base.setMessage(PARAM_ERR_MSG);
         StringBuilder fields = new StringBuilder();
         List<String> errFields = new ArrayList<>();
         StringBuilder returnMsg = new StringBuilder();
@@ -211,7 +211,7 @@ public class BaseController {
             }
             returnMsg.deleteCharAt(returnMsg.length() - 1);
             LOG.info(PARAM_ERR_MSG + ":" + fields.toString());
-            base.setReturnErrMsg(returnMsg.toString());
+            base.setMessage(returnMsg.toString());
         }
         return new ResponseEntity(base, HttpStatus.OK);
     }

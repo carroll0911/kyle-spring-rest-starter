@@ -8,49 +8,49 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public class BaseResponse {
     @ApiModelProperty(value = "是否成功", required = true)
-    private Boolean returnSuccess = true;
+    private Boolean success = true;
 
     @ApiModelProperty(value = "错误code")
-    private String returnErrCode;
+    private String errCode;
 
     @ApiModelProperty(value = "错误描述")
-    private String returnErrMsg;
+    private String message;
 
-    public String getReturnErrCode() {
-        return returnErrCode;
+    public String getErrCode() {
+        return errCode;
     }
 
-    public void setReturnErrCode(String returnErrCode) {
-        this.returnErrCode = returnErrCode;
+    public void setErrCode(String errCode) {
+        this.errCode = errCode;
     }
 
-    public String getReturnErrMsg() {
-        return returnErrMsg;
+    public String getMessage() {
+        return message;
     }
 
-    public void setReturnErrMsg(String returnErrMsg) {
-        this.returnErrMsg = returnErrMsg;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public Boolean getReturnSuccess() {
-        return returnSuccess;
+    public Boolean getSuccess() {
+        return success;
     }
 
-    public void setReturnSuccess(Boolean returnSuccess) {
-        this.returnSuccess = returnSuccess;
+    public void setSuccess(Boolean success) {
+        this.success = success;
     }
 
     public BaseResponse error(String errCode, String errMsg) {
-        setReturnSuccess(false);
-        setReturnErrCode(errCode);
-        setReturnErrMsg(errMsg);
+        setSuccess(false);
+        setErrCode(errCode);
+        setMessage(errMsg);
         return this;
     }
 
     public BaseResponse error(BaseEnum baseEnum) {
-        setReturnSuccess(false);
-        setReturnErrCode(baseEnum.getCode());
-        setReturnErrMsg(baseEnum.getMsg());
+        setSuccess(false);
+        setErrCode(baseEnum.getCode());
+        setMessage(baseEnum.getMsg());
         return this;
     }
 
@@ -59,8 +59,8 @@ public class BaseResponse {
     }
 
     public BaseResponse(BaseEnum baseEnum) {
-        this.returnSuccess = false;
-        this.returnErrCode = baseEnum.getCode();
-        this.returnErrMsg = baseEnum.getMsg();
+        this.success = false;
+        this.errCode = baseEnum.getCode();
+        this.message = baseEnum.getMsg();
     }
 }

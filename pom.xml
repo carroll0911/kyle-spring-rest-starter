@@ -6,7 +6,7 @@
 
     <groupId>com.carroll0911</groupId>
     <artifactId>carroll-spring-rest-starter</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.1.2-SNAPSHOT</version>
     <properties>
         <spring.boot.version>1.5.3.RELEASE</spring.boot.version>
         <springfox.swagger.version>2.7.0</springfox.swagger.version>
