@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.kyle0911</groupId>
-    <artifactId>carroll-spring-rest-starter</artifactId>
-    <version>1.1.2</version>
+    <artifactId>kyle-spring-rest-starter</artifactId>
+    <version>1.1.3</version>
     <description>spring rest starter</description>
     <properties>
         <spring.boot.version>1.5.3.RELEASE</spring.boot.version>
@@ -35,9 +35,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.carroll0911</groupId>
-            <artifactId>carroll-utils</artifactId>
-            <version>1.1.1-SNAPSHOT</version>
+            <groupId>io.github.kyle0911</groupId>
+            <artifactId>kyle-utils</artifactId>
+            <version>1.1.1</version>
         </dependency>
 
         <dependency>
