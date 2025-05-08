@@ -42,6 +42,7 @@ public class BasePageResponse<T> extends BaseResponse {
         this.hasPro = curPage == 1 ? false : true;
     }
 
+    @Override
     public List<T> getData() {
         return data;
     }

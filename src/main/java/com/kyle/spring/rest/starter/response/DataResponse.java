@@ -68,11 +68,8 @@ public class DataResponse<T> extends BaseResponse {
         });
     }
 
+    @Override
     public T getData() {
         return data;
-    }
-
-    public void setData(final T data) {
-        this.data = data;
     }
 }
