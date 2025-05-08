@@ -25,18 +25,25 @@ import com.kyle.spring.rest.starter.swagger.schema.ApiModelPropertiesWrapper;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import io.swagger.annotations.ApiParam;
+import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.service.AllowableListValues;
 import springfox.documentation.service.AllowableValues;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.schema.EnumTypeDeterminer;
 import springfox.documentation.spi.service.ExpandedParameterBuilderPlugin;
 import springfox.documentation.spi.service.contexts.ParameterExpansionContext;
+import springfox.documentation.spring.web.DescriptionResolver;
 import springfox.documentation.swagger.common.SwaggerPluginSupport;
+import springfox.documentation.swagger.readers.parameter.Examples;
 import springfox.documentation.swagger.schema.ApiModelProperties;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,30 +53,33 @@ import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Lists.transform;
 import static springfox.documentation.swagger.annotations.Annotations.findApiParamAnnotation;
+import static springfox.documentation.swagger.common.SwaggerPluginSupport.SWAGGER_PLUGIN_ORDER;
 
 /**
  * @author carroll
  * @Date 2017-07-25 18:06 
  */
 @Component
-@Order(SwaggerPluginSupport.SWAGGER_PLUGIN_ORDER)
+@Order(SWAGGER_PLUGIN_ORDER)
 public class SwaggerExpandedParameterBuilderWrapper implements ExpandedParameterBuilderPlugin {
+
+    private final DescriptionResolver descriptions;
+    private final EnumTypeDeterminer enumTypeDeterminer;
+
+    @Autowired
+    public SwaggerExpandedParameterBuilderWrapper(
+            DescriptionResolver descriptions,
+            EnumTypeDeterminer enumTypeDeterminer) {
+        this.descriptions = descriptions;
+        this.enumTypeDeterminer = enumTypeDeterminer;
+    }
 
     @Override
     public void apply(ParameterExpansionContext context) {
-        Optional<ApiModelPropertyWrapper> apiModelPropertyWrapperOptional
-                = findApiModePropertyAnnotation(context.getField().getRawMember());
-        if (apiModelPropertyWrapperOptional.isPresent()) {
-            try {
-                fromApiModelProperty(context, apiModelPropertyWrapperOptional.get());
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        Optional<ApiParam> apiParamOptional = findApiParamAnnotation(context.getField().getRawMember());
-        if (apiParamOptional.isPresent()) {
-            fromApiParam(context, apiParamOptional.get());
-        }
+        java.util.Optional<ApiModelPropertyWrapper> apiModelPropertyOptional = context.findAnnotation(ApiModelPropertyWrapper.class);
+        apiModelPropertyOptional.ifPresent(apiModelProperty -> fromApiModelProperty(context, apiModelProperty));
+        java.util.Optional<ApiParam> apiParamOptional = context.findAnnotation(ApiParam.class);
+        apiParamOptional.ifPresent(apiParam -> fromApiParam(context, apiParam));
     }
 
     @Override
@@ -78,59 +88,66 @@ public class SwaggerExpandedParameterBuilderWrapper implements ExpandedParameter
     }
 
     private void fromApiParam(ParameterExpansionContext context, ApiParam apiParam) {
-        String allowableProperty = emptyToNull(apiParam.allowableValues());
-        AllowableValues allowable = allowableValues(fromNullable(allowableProperty), context.getField().getRawMember(), null);
-        context.getParameterBuilder()
-                .description(apiParam.value())
+        String allowableProperty = Strings.trimToNull(apiParam.allowableValues());
+        AllowableValues allowable = allowableValues(
+                Optional.fromNullable(allowableProperty),
+                context.getFieldType().getErasedType());
+
+        maybeSetParameterName(context, apiParam.name())
+                .description(descriptions.resolve(apiParam.value()))
                 .defaultValue(apiParam.defaultValue())
                 .required(apiParam.required())
                 .allowMultiple(apiParam.allowMultiple())
                 .allowableValues(allowable)
                 .parameterAccess(apiParam.access())
                 .hidden(apiParam.hidden())
+                .scalarExample(apiParam.example())
+                .complexExamples(Examples.examples(apiParam.examples()))
+                .order(SWAGGER_PLUGIN_ORDER)
                 .build();
     }
 
-    private void fromApiModelProperty(ParameterExpansionContext context, ApiModelPropertyWrapper apiModelPropertyWrapper) throws ClassNotFoundException {
-        String allowableProperty = emptyToNull(apiModelPropertyWrapper.allowableValues());
-        AllowableValues allowable = allowableValues(fromNullable(allowableProperty), context.getField().getRawMember(), apiModelPropertyWrapper);
-        context.getParameterBuilder()
-                .description(apiModelPropertyWrapper.value() + readFromEnumClass(apiModelPropertyWrapper))
-                .required(apiModelPropertyWrapper.required())
+    private void fromApiModelProperty(ParameterExpansionContext context, ApiModelPropertyWrapper apiModelProperty) {
+        String allowableProperty = Strings.trimToNull(apiModelProperty.allowableValues());
+        AllowableValues allowable = allowableValues(
+                Optional.fromNullable(allowableProperty),
+                context.getFieldType().getErasedType());
+
+        maybeSetParameterName(context, apiModelProperty.name())
+                .description(descriptions.resolve(apiModelProperty.value()))
+                .required(apiModelProperty.required())
                 .allowableValues(allowable)
-                .parameterAccess(apiModelPropertyWrapper.access())
-                .hidden(apiModelPropertyWrapper.hidden())
+                .parameterAccess(apiModelProperty.access())
+                .hidden(apiModelProperty.hidden())
+                .scalarExample(apiModelProperty.example())
+                .order(apiModelProperty.position()) //源码这里是: SWAGGER_PLUGIN_ORDER，需要修正
                 .build();
     }
 
-    private AllowableValues allowableValues(final Optional<String> optionalAllowable, final Field field, ApiModelPropertyWrapper apiModelPropertyWrapper) {
+    private ParameterBuilder maybeSetParameterName(ParameterExpansionContext context, String parameterName) {
+        if (!Strings.isBlank(parameterName)) {
+            context.getParameterBuilder().name(parameterName);
+        }
+        return context.getParameterBuilder();
+    }
+
+    private AllowableValues allowableValues(final Optional<String> optionalAllowable, Class<?> fieldType) {
+
         AllowableValues allowable = null;
-        if (field.getType().isEnum()) {
-            allowable = new AllowableListValues(getEnumValues(field.getType(), apiModelPropertyWrapper), "LIST");
+        if (enumTypeDeterminer.isEnum(fieldType)) {
+            allowable = new AllowableListValues(getEnumValues(fieldType), "LIST");
         } else if (optionalAllowable.isPresent()) {
             allowable = ApiModelProperties.allowableValueFromString(optionalAllowable.get());
         }
-
         return allowable;
     }
 
-    private List<String> getEnumValues(final Class<?> subject, ApiModelPropertyWrapper apiModelPropertyWrapper) {
-        if (apiModelPropertyWrapper == null) {
-            return transform(Arrays.asList(subject.getEnumConstants()), (Function<Object, String>) input -> input.toString());
+    private List<String> getEnumValues(final Class<?> subject) {
+        List<?> list = Arrays.asList(subject.getEnumConstants());
+        List<String> res = new LinkedList<>();
+        for(Object a: list){
+            res.add(a.toString());
         }
-        Set<String> exclusions = Arrays.stream(apiModelPropertyWrapper.excludeEnumCode()).collect(Collectors.toSet());
-        return Arrays.stream(subject.getEnumConstants()).
-                map(element -> element.toString()).
-                filter(element -> !exclusions.contains(element)).
-                collect(Collectors.toList());
-    }
-
-    private String readFromEnumClass(ApiModelPropertyWrapper apiModelPropertyWrapper) throws ClassNotFoundException {
-        Class<? extends BaseEnum> enumClass = apiModelPropertyWrapper.enumClass();
-        Set<String> exclusionsEnumCode = Arrays.stream(apiModelPropertyWrapper.excludeEnumCode()).collect(Collectors.toSet());
-        if (enumClass == BaseEnum.class) {
-            return "";
-        }
-        return ApiModelPropertiesWrapper.getValueFromEnum(enumClass, exclusionsEnumCode);
+        return res;
     }
 }

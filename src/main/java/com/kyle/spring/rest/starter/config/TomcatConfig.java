@@ -5,9 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
-import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
  * @Date 2017-07-25 18:06
  */
 @Configuration
-@ConditionalOnClass(TomcatEmbeddedServletContainerFactory.class)
+@ConditionalOnClass(TomcatServletWebServerFactory.class)
 public class TomcatConfig {
 
     @Value("${server.connection-timeout:0}")
@@ -32,9 +31,9 @@ public class TomcatConfig {
     private static final Logger logger = LoggerFactory.getLogger(TomcatConfig.class);
 
     @Bean
-    public EmbeddedServletContainerFactory createEmbeddedServletContainerFactory() {
+    public TomcatServletWebServerFactory createEmbeddedServletContainerFactory() {
         logger.info("--------------- init tomcat config ----------------");
-        TomcatEmbeddedServletContainerFactory tomcatFactory = new TomcatEmbeddedServletContainerFactory();
+        TomcatServletWebServerFactory tomcatFactory = new TomcatServletWebServerFactory();
         tomcatFactory.addConnectorCustomizers((TomcatConnectorCustomizer) connector -> {
             Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
             //设置最大连接数

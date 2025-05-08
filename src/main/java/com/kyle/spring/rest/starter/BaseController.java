@@ -30,7 +30,7 @@ import java.util.function.Function;
 public class BaseController {
     private final static Logger LOG = LoggerFactory.getLogger(BaseController.class);
     public static final String ERR_CODE = "001";
-    public static final String ERR_MSG = "未知错误";
+    public static final String ERR_MSG = "系统错误";
     private static final String PARAM_ERR_CODE = "0001";
     private static final String PARAM_ERR_MSG = "参数错误,字段：";
     @Autowired(required = false)

@@ -1,7 +1,7 @@
 package com.kyle.spring.rest.starter.swagger;
 
+import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
 import com.kyle.spring.rest.starter.config.SwaggerConfig;
-import com.github.xiaoymin.knife4j.spring.annotations.EnableSwaggerBootstrapUi;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -24,7 +24,7 @@ import springfox.documentation.service.Parameter;
 import springfox.documentation.service.StringVendorExtension;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,9 +35,9 @@ import java.util.List;
  * @Date 2017-07-25 18:06
  */
 @ConditionalOnProperty(prefix = "swagger", value = {"enable"}, havingValue = "true", matchIfMissing = true)
-@EnableSwagger2
+@EnableSwagger2WebMvc
 @Component
-@EnableSwaggerBootstrapUi
+@EnableKnife4j
 public class SwaggerIniter implements ApplicationContextAware {
 
     private static final String APPLICATION_VERSION_KEY = "appVersion";

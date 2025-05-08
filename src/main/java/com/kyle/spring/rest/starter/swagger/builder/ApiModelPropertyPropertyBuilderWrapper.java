@@ -23,6 +23,7 @@ import com.kyle.spring.rest.starter.swagger.annotations.ApiModelPropertyWrapper;
 import com.google.common.base.Optional;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import springfox.documentation.schema.Annotations;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.schema.ModelPropertyBuilderPlugin;
 import springfox.documentation.spi.schema.contexts.ModelPropertyContext;
@@ -48,8 +49,11 @@ public class ApiModelPropertyPropertyBuilderWrapper implements ModelPropertyBuil
             annotation = annotation.or(findApiModePropertyAnnotation(context.getAnnotatedElement().get()));
         }
         if (context.getBeanPropertyDefinition().isPresent()) {
-            annotation = annotation.or(findPropertyAnnotation(
-                    context.getBeanPropertyDefinition().get(), ApiModelPropertyWrapper.class));
+            java.util.Optional<ApiModelPropertyWrapper> propertyAnnotation = findPropertyAnnotation(
+                    context.getBeanPropertyDefinition().get(), ApiModelPropertyWrapper.class);
+            if (propertyAnnotation.isPresent()) {
+                annotation = Optional.of(propertyAnnotation.get());
+            }
         }
         if (annotation.isPresent()) {
             context.getBuilder()
